@@ -1,0 +1,55 @@
+version: "3.4"
+
+services:
+  my-nginx-service:
+    image: nginx
+    container_name: my-nginx-service
+    ports:
+      - 8000:80
+    environment:
+      - FOO=bar
+    logging:
+      driver: loki
+      options:
+        loki-url: http://localhost:3100/loki/api/v1/push
+        loki-external-labels: job=dockerlogs,owner=ruan,environment=development
+
+#  logger-app:
+#    image: ctovena/logger:latest
+#    container_name: logger
+#    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+#        loki-external-labels: job=dockerlogs,owner=ruan,environment=development
+
+  grafana:
+    image: grafana/grafana:7.2.2
+    container_name: grafana
+    volumes:
+    - ./config/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+    ports:
+    - "3000:3000"
+
+  loki:
+    image: grafana/loki:2.0.0
+    container_name: loki
+    volumes:
+      - ./config/loki.yaml:/etc/config/loki.yaml
+    entrypoint:
+      - /usr/bin/loki
+      - -config.file=/etc/config/loki.yaml
+    ports:
+      - "3100:3100"
+
+  ngrok:
+    image: wernight/ngrok:latest
+    ports:
+      - 4041:4040
+    environment:
+        NGROK_PROTOCOL: http
+        NGROK_PORT: loki:3100
+        NGROK_AUTH: 'your-secret-token'
+        NGROK_DEBUG: 'true'
+    depends_on:
+      - loki
