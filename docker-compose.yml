@@ -12,7 +12,7 @@ services:
       driver: loki
       options:
         loki-url: http://localhost:3100/loki/api/v1/push
-        loki-external-labels: job=dockerlogs,owner=ruan,environment=development
+        loki-external-labels: job=dockerlogs,owner=everton,environment=development
 
 #  logger-app:
 #    image: ctovena/logger:latest
